@@ -4238,6 +4238,28 @@ async def api_generate_week_summary(start: str = None, end: str = None):
     except Exception as e:
         return {"error": str(e)}
 
+@app.get("/admin/week-summary-view")
+async def api_view_week_summary(start: str = None):
+    """查看周總結內容 ?start=2026-11-09"""
+    try:
+        import database
+        from datetime import date as date_cls
+        pool = await database.get_pool()
+        async with pool.acquire() as conn:
+            if start:
+                row = await conn.fetchrow(
+                    "SELECT * FROM calendar_pages WHERE start_date = $1",
+                    date_cls.fromisoformat(start)
+                )
+            else:
+                row = await conn.fetchrow(
+                    "SELECT * FROM calendar_pages WHERE start_date IS NOT NULL ORDER BY start_date DESC LIMIT 1"
+                )
+        if not row:
+            return {"status": "not_found"}
+        return {"status": "ok", "data": dict(row)}
+    except Exception as e:
+        return {"error": str(e)}
 
 @app.get("/admin/month-summary")
 async def api_generate_month_summary(month: str = None):
