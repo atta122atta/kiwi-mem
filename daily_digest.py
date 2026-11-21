@@ -1318,8 +1318,21 @@ async def _generate_day_page_impl(target_date: str = None, model_override: str =
         snapshot = await database.snapshot_chat_messages_for_date(date_str)
         messages = list(snapshot["rows"])
         if not messages:
-            print(f"   📭 {date_str} 没有聊天记录，跳过日页面生成")
-            return {"date": date_str, "status": "skipped", "reason": "no messages"}
+          # 嘗試用每日整理條目替代聊天記錄
+          async with database.pool.acquire() as conn:
+              digest_rows = await conn.fetch("""
+                  SELECT title, content, importance
+                  FROM memories
+                  WHERE (created_at AT TIME ZONE 'Asia/Shanghai')::date = $1
+                    AND memory_type = 'daily_digest'
+                  ORDER BY importance DESC, created_at ASC
+              """, date_cls.fromisoformat(date_str))
+          if not digest_rows:
+              print(f"   📭 {date_str} 没有聊天记录，跳过日页面生成")
+              return {"date": date_str, "status": "skipped", "reason": "no messages"}
+          digest_content = "\n".join([f"【{r['title']}】{r['content']}" for r in digest_rows])
+          messages = [{"role": "assistant", "content": f"（原始聊天記錄未儲存，以下為每日整理摘要）\n{digest_content}", "time": f"{date_str}T12:00:00+08:00", "conversation_id": "digest"}]
+          print(f"   📋 使用每日整理替代聊天記錄（{len(digest_rows)} 條），繼續生成日頁面")
 
         print(f"   💬 找到 {len(messages)} 条聊天消息")
 
