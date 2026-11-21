@@ -221,13 +221,21 @@ async def _run_daily_digest_impl(date_str: str, now_cst, model_override: str = N
                 digests = json.loads(text)
             except json.JSONDecodeError:
                 import re
-                match = re.search(r'\[.*\]', text, re.DOTALL)
-                if match:
+                idx = text.find('[')
+                if idx != -1:
                     try:
-                        digests = json.loads(match.group())
-                        print(f"   🔧 JSON 正则兜底解析成功")
+                        digests = json.loads(text[idx:])
+                        print(f"  🔧 JSON 前置跳過解析成功")
                     except json.JSONDecodeError:
                         pass
+                if not digests:
+                    match = re.search(r'\[.*\]', text, re.DOTALL)
+                    if match:
+                        try:
+                            digests = json.loads(match.group())
+                            print(f"  🔧 JSON 正则兜底解析成功")
+                        except json.JSONDecodeError:
+                            pass
             
             if not digests or not isinstance(digests, list):
                 print(f"   ⚠️ 整理模型返回格式错误")
