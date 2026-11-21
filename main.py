@@ -12,6 +12,17 @@ Kiwi-Mem — 带记忆系统的 LLM 转发网关
 环境变量 MEMORY_ENABLED=false 时退化为纯转发网关（第一阶段）。
 """
 
+# Patch: pydantic 2.6+ removed eval_type_backport from internals, fastmcp still needs it
+try:
+    from pydantic._internal._typing_extra import eval_type_backport
+except ImportError:
+    try:
+        from eval_type_backport import eval_type_backport as _etb
+        import pydantic._internal._typing_extra as _pydantic_extra
+        _pydantic_extra.eval_type_backport = _etb
+    except ImportError:
+        pass
+
 import os
 import json
 import hashlib
