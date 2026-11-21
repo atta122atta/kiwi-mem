@@ -221,13 +221,28 @@ async def _run_daily_digest_impl(date_str: str, now_cst, model_override: str = N
                 digests = json.loads(text)
             except json.JSONDecodeError:
                 import re
+                # 用平衡括號掃描找到完整的 JSON array，忽略前後多餘文字
                 idx = text.find('[')
                 if idx != -1:
-                    try:
-                        digests = json.loads(text[idx:])
-                        print(f"  🔧 JSON 前置跳過解析成功")
-                    except json.JSONDecodeError:
-                        pass
+                    depth = 0
+                    in_str = False
+                    esc = False
+                    end = -1
+                    for i, c in enumerate(text[idx:], idx):
+                        if esc: esc = False; continue
+                        if c == '\\' and in_str: esc = True; continue
+                        if c == '"': in_str = not in_str; continue
+                        if in_str: continue
+                        if c == '[': depth += 1
+                        elif c == ']':
+                            depth -= 1
+                            if depth == 0: end = i; break
+                    if end != -1:
+                        try:
+                            digests = json.loads(text[idx:end+1])
+                            print(f"  🔧 JSON 平衡括號解析成功")
+                        except json.JSONDecodeError:
+                            pass
                 if not digests:
                     match = re.search(r'\[.*\]', text, re.DOTALL)
                     if match:
