@@ -1319,7 +1319,7 @@ async def _generate_day_page_impl(target_date: str = None, model_override: str =
         messages = list(snapshot["rows"])
         if not messages:
           # 嘗試用每日整理條目替代聊天記錄
-          async with pool.acquire() as conn:
+          digest_rows = await database.get_digest_entries_for_date(date_str)
               digest_rows = await conn.fetch("""
                   SELECT title, content, importance
                   FROM memories
