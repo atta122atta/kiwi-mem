@@ -4191,6 +4191,26 @@ async def api_generate_day_page(date: str = None):
     except Exception as e:
         return {"error": str(e)}
 
+@app.get("/admin/day-page-view")
+async def api_view_day_page(date: str = None):
+    """查看日頁面內容 ?date=2026-11-20"""
+    try:
+        import database
+        from datetime import date as date_cls, datetime, timezone, timedelta
+        if date is None:
+            TZ_CST = timezone(timedelta(hours=8))
+            date = datetime.now(TZ_CST).strftime("%Y-%m-%d")
+        pool = await database.get_pool()
+        async with pool.acquire() as conn:
+            row = await conn.fetchrow(
+                "SELECT * FROM calendar_pages WHERE date = $1",
+                date_cls.fromisoformat(date)
+            )
+        if not row:
+            return {"status": "not_found", "date": date}
+        return {"status": "ok", "date": date, "data": dict(row)}
+    except Exception as e:
+        return {"error": str(e)}
 
 @app.get("/admin/week-summary")
 async def api_generate_week_summary(start: str = None, end: str = None):
