@@ -4248,12 +4248,12 @@ async def api_view_week_summary(start: str = None):
         async with pool.acquire() as conn:
             if start:
                 row = await conn.fetchrow(
-                    "SELECT * FROM calendar_pages WHERE start_date = $1",
+                    "SELECT * FROM calendar_pages WHERE type='week' AND date = $1",
                     date_cls.fromisoformat(start)
                 )
             else:
                 row = await conn.fetchrow(
-                    "SELECT * FROM calendar_pages WHERE start_date IS NOT NULL ORDER BY start_date DESC LIMIT 1"
+                    "SELECT * FROM calendar_pages WHERE type='week' ORDER BY date DESC LIMIT 1"
                 )
         if not row:
             return {"status": "not_found"}
