@@ -1320,13 +1320,7 @@ async def _generate_day_page_impl(target_date: str = None, model_override: str =
         if not messages:
           # 嘗試用每日整理條目替代聊天記錄
           digest_rows = await database.get_digest_entries_for_date(date_str)
-              digest_rows = await conn.fetch("""
-                  SELECT title, content, importance
-                  FROM memories
-                  WHERE (created_at AT TIME ZONE 'Asia/Shanghai')::date = $1
-                    AND memory_type = 'daily_digest'
-                  ORDER BY importance DESC, created_at ASC
-              """, date_cls.fromisoformat(date_str))
+         
           if not digest_rows:
               print(f"   📭 {date_str} 没有聊天记录，跳过日页面生成")
               return {"date": date_str, "status": "skipped", "reason": "no messages"}
