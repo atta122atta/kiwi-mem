@@ -297,7 +297,7 @@ async def _run_daily_digest_impl(date_str: str, now_cst, model_override: str = N
                 VALUES ($1, $2, $3, $4, $5, 'daily_digest', $6::timestamptz, $7, 'ai_digest')
             """,
                 content_with_date, importance, "daily_digest", embedding_json, title,
-                f"{date_str}T00:00:00+08:00", cat_id
+                datetime.fromisoformat(f"{date_str}T00:00:00").replace(tzinfo=TZ_CST), cat_id
             )
         
         saved_count += 1
