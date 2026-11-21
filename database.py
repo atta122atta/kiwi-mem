@@ -6643,3 +6643,15 @@ async def search_chat_messages(query: str, project_id: str = None, limit: int = 
             initial_state = await _search_initial_state_tx(conn, session_ids)
 
         return await _search_final_check(conn, results, initial_state)
+
+async def get_digest_entries_for_date(date_str: str):
+    from datetime import date as date_cls
+    async with pool.acquire() as conn:
+        rows = await conn.fetch("""
+            SELECT title, content, importance
+            FROM memories
+            WHERE (created_at AT TIME ZONE 'Asia/Shanghai')::date = $1
+              AND memory_type = 'daily_digest'
+            ORDER BY importance DESC, created_at ASC
+        """, date_cls.fromisoformat(date_str))
+    return rows
