@@ -181,7 +181,7 @@ async def _run_daily_digest_impl(date_str: str, now_cst, model_override: str = N
         from anthropic_adapter import prepare_background_request, parse_background_response
         _body = {
             "model": use_model,
-            "max_tokens": 2000,
+            "max_tokens": 4096,
             "messages": [
                 {"role": "system", "content": prompt},
                 {"role": "user", "content": f"请整理 {date_str} 的碎片记忆。"},
