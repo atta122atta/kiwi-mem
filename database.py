@@ -6646,6 +6646,7 @@ async def search_chat_messages(query: str, project_id: str = None, limit: int = 
 
 async def get_digest_entries_for_date(date_str: str):
     from datetime import date as date_cls
+    pool = await get_pool()
     async with pool.acquire() as conn:
         rows = await conn.fetch("""
             SELECT title, content, importance
