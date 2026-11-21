@@ -203,7 +203,8 @@ async def _run_daily_digest_impl(date_str: str, now_cst, model_override: str = N
             text = data.get("choices", [{}])[0].get("message", {}).get("content", "")
             
             # 日志
-            print(f"   🔍 整理模型返回（前200字）: {text[:200]}...")
+            print(f"  整理模型返回（共{len(text)}字）: {text[:300]}")
+            print(f"  整理模型返回（末100字）: ...{text[-100:]}")
             
             # 清理 markdown
             text = text.strip()
